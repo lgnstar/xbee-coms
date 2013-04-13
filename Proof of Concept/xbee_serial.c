@@ -117,13 +117,13 @@ int main( int argc, char* argv[] )
 	while( STOP == FALSE )
 	{
 		struct timeval timeout;
-		timeout.tv_sec = 10;  //seconds
+		timeout.tv_sec = 1;  //seconds
 		timeout.tv_usec = 0; //microseconds
 
 		//defining listeners
 		FD_ZERO( &readfs );
 		//set testing for source 1; This is the board
-		FD_SET( global_serial_port_descriptor, &readfs);
+		FD_SET( global_serial_port_descriptor, &readfs); //Adds the specified descriptor to a list of descriptors to check
 		//set testing for source 2; This is the keyboard
 		FD_SET( STDIN_FILENO, &readfs );
 
