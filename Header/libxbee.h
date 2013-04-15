@@ -41,7 +41,7 @@
 #define TIMEOUT_USEC 1000;
 
 int port_descriptor;				//Used to define the port associated with the device
-char port_name[MAX_BUFFER_SIZE] = "/dev/ttyUSB0";
+char port_name[MAX_BUFFER_SIZE];
 char rx_buffer[MAX_BUFFER_SIZE];	//Used to store data received
 char tx_buffer[MAX_BUFFER_SIZE];	//Used to store data to send
 struct timeval timeout;				//Used to set timeout value for serial port
@@ -105,7 +105,7 @@ int read_port( char * );
  * @return:		   0 - success
  *			Not Zero - Error
  */
-int check_descriptors( int [] );
+int check_descriptors( int, int [] );
 
 /* @breif Communicates with the module and puts it into command mode
  *

@@ -47,14 +47,20 @@
 int init_port(char * port)
 {
 	int ret_value;
+	int length = strlen( port );
 
-	if( strlen( port ) > 255)
+	if( length > 255)
 	{
 		printf(" The port name[%s] is too long. Port names must be less than %d characters.", 
 			   port, 
 			   MAX_BUFFER_SIZE );
 
 		return 1;
+	}//END----- length > 255 ---------------------------------------------
+
+	if( length == 0 )
+	{
+		port_name = "/dev/ttyUSB0";
 	}
 
 	//Copy the the provided port name into the global variable port_name to be used in other functions
@@ -177,6 +183,8 @@ int init_port(char * port)
  */
 int write_port( char * buffer )
 {
+	int result = 0;
+
 	int write_count = write( port_descriptor,
                              buffer,			//Data to write to the port
                              strlen(buffer) );	//Count of characters to write
@@ -187,9 +195,11 @@ int write_port( char * buffer )
                 buffer,
                 port_name,
                 write_count );
+
+		result = 1;
 	}
 
-    return 0;
+    return result;
 
 }//----- End ----- write_port(char * buffer)-----------------------------------
 
