@@ -28,6 +28,9 @@
 #ifndef LIBXBEE_H
 #define LIBXBEE_H
 
+#include <sys/select.h>
+#include <termios.h>
+
 //-----------------Global Variable Definitions-------------------------------------
 #define TRUE 1
 #define FALSE 0
