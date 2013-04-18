@@ -125,5 +125,16 @@ int enter_command_mode( void );
  *			Not Zero - Error
  */
 int exit_command_mode( void );
+
+/* @breif Runs the an AT command that will return the xbees IP address
+ *
+ * @AT Command: ATMY
+ *
+ * @param char * buffer: IP address will be stored here
+ *
+ * @return:                0 - success
+ *                      Not Zero - Error
+ */
+int get_ip( char * );
 //---------------End Function Prototypes-------------------------------------------
 #endif //Include Gaurd End

@@ -325,3 +325,42 @@ int exit_command_mode( void )
 
 	return ( strncmp( rx, "OK", 2 ) == 0 );
 }//----- End ----- exit_command_mode( void )------------------------------
+
+/* @breif Runs the an AT command that will return the xbees IP address
+ *
+ * @AT Command: ATMY
+ *
+ * @param char * buffer: IP address will be stored here
+ *
+ * @return:                0 - success
+ *                      Not Zero - Error
+ */
+int get_ip( char * buffer )
+{
+        int fds[1];
+        int result = 0;
+	int count = 0;//DEBUG
+
+	if( enter_command_mode( ) == 0 )
+	{
+
+        	//We only want to watch the descriptor associated with the hardware
+        	fds[0] = port_descriptor;
+
+        	if( write_port( "atcn\r\0" ) == 0 )
+		{
+        		while( result == 0 )
+        		{
+                		if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
+                		{
+                        		result = read_port( buffer );
+                		}
+				count++;//DEBUG
+        		}//END ----- while( result == 0 ) -------------------
+		}//END ----- write_port == 0 --------------------------------
+
+		exit_command_mode( );
+	}//END ----- enter_command_mode == 0----------------------------------
+
+        return 0;
+}//----- End ----- get_ip( char * )---------------------------------------
