@@ -108,18 +108,18 @@ int read_port( char * );
  */
 int check_descriptors( int, int [] );
 
-/* @breif Communicates with the module and puts it into command mode
+/* @breif Communicates with the xbee and puts it into command mode
+ *
+ * @AT Command: +++
  *
  * @return:		   0 - success
  *			Not Zero - Error
  */
 int enter_command_mode( void );
 
-/* @breif 
+/* @breif Communicates with the xbee and takes it out of command mode
  *
- * Header files needed: 
- *
- * @param 
+ * @AT Command: ATCN
  *
  * @return:		   0 - success
  *			Not Zero - Error
