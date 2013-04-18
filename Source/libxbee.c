@@ -268,7 +268,9 @@ int check_descriptors( int count, int fds[] )
 	return result;
 }//----- End ----- check_descriptors( int fds[] )-------------------------
 
-/* @breif Communicates with the module and puts it into command mode
+/* @breif Communicates with the xbee and puts it into command mode
+ *
+ * @AT Command: +++
  *
  * @return:		   0 - success
  *			Not Zero - Error
@@ -294,3 +296,32 @@ int enter_command_mode( void )
 
 		return ( strncmp( rx, "OK", 2 ) == 0 );
 }//----- End ----- enter_command_mode( void )-----------------------------
+
+/* @breif Communicates with the xbee and takes it out of command mode
+ *
+ * @AT Command: ATCN
+ *
+ * @return:                0 - success
+ *                      Not Zero - Error
+ */
+int exit_command_mode( void )
+{
+	int fds[1];
+	int result = 0;
+	char rx[MAX_BUFFER_SIZE];
+
+        //We only want to watch the descriptor associated with the hardware
+        fds[0] = port_descriptor;
+
+	write_port( "atcn\r" );
+
+	while( result == 0 )
+	{
+	        if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
+                {
+                	result = read_port( rx );
+        	}
+	}
+
+	return ( strncmp( rx, "OK", 2 ) == 0 );
+}//----- End ----- exit_command_mode( void )------------------------------
