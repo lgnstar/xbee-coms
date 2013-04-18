@@ -60,11 +60,14 @@ int init_port(char * port)
 
 	if( length == 0 )
 	{
-		port_name = "/dev/ttyUSB0";
+		//Set the default name of the port_name
+		strcpy( port_name, "/dev/ttyUSB0" );
 	}
-
-	//Copy the the provided port name into the global variable port_name to be used in other functions
-	strncpy( port_name, port, MAX_BUFFER_SIZE );
+	else
+	{
+		//Copy the the provided port name into the global variable port_name to be used in other functions
+        	strncpy( port_name, port, MAX_BUFFER_SIZE );
+	}
 
 	// SIGIO is used for interrupt-driven input
 	// We are ignoring SIGIO because we are using the select function instead
