@@ -341,7 +341,6 @@ int get_ip( char * buffer )
 {
 	int fds[1];
 	int result = 0;
-	int count = 0;//DEBUG
 
 	if( enter_command_mode( ) == 0 )
 	{
@@ -357,12 +356,19 @@ int get_ip( char * buffer )
 				{
 					result = read_port( buffer );
 				}
-				count++;//DEBUG
-
 			}//END ----- while( result == 0 ) -----------------------
+		}
+		else
+		{
+			return 2;
 		}//END ----- write_port == 0 --------------------------------
 
 		exit_command_mode( );
+
+	}
+	else
+	{
+		return 1;
 	}//END ----- enter_command_mode == 0----------------------------------
 
 	return 0;
