@@ -45,8 +45,6 @@
 
 int port_descriptor;				//Used to define the port associated with the device
 char port_name[MAX_BUFFER_SIZE];
-char rx_buffer[MAX_BUFFER_SIZE];	//Used to store data received
-char tx_buffer[MAX_BUFFER_SIZE];	//Used to store data to send
 struct timeval timeout;				//Used to set timeout value for serial port
 struct termios newtio;				//Contains parameters for the serial port
 int maxfd;							//Used by the select function to define its search
