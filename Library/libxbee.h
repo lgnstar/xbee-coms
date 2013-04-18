@@ -69,8 +69,8 @@ fd_set readfs;						//A set of files descriptors for the select system call to c
  *
  * @param char * port: The complete name of the port to be opened(i.e. /dev/ttyUSB0)
  *
- * @return:			0 - success
- *			 Not Zero - Error
+ * @return:		   0 - success
+ *			Not Zero - Error
  */
 int init_port( char * );
 
@@ -132,8 +132,8 @@ int exit_command_mode( void );
  *
  * @param char * buffer: IP address will be stored here
  *
- * @return:                0 - success
- *                      Not Zero - Error
+ * @return:        0 - success
+ * 			Not Zero - Error
  */
 int get_ip( char * );
 //---------------End Function Prototypes-------------------------------------------

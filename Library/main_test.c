@@ -22,13 +22,13 @@
 
 void display( void )
 {
-        printf( "\nProgram choices:\n"\
-                "   1. Open a port\n"\
-                "   2. Enter Command Mode\n"\
-                "   3. Exit Command Mode\n"\
-		"   4. Get IP Address\n"\
-                "   0. Exit program\n"\
-                "\nSelect a number:" );
+	printf( "\nProgram choices:\n"\
+			"   1. Open a port\n"\
+			"   2. Enter Command Mode\n"\
+			"   3. Exit Command Mode\n"\
+			"   4. Get IP Address\n"\
+			"   0. Exit program\n"\
+			"\nSelect a number:" );
 }
 
 int main( int argc, char * argv[] )
@@ -47,18 +47,20 @@ int main( int argc, char * argv[] )
 	while( scanf( "%d", &choice ) != 0 )
 	{
 		switch( choice )
-                {
-                        case 0:
-                                printf( "\nGoodbye\n\n" );
+		{
+			case 0:
+				printf( "\nGoodbye\n\n" );
 				exit( 0 );
+
 				break;
 			case 1:
 				printf( "\nEnter port name:" );
 				scanf( "%s", port );
 
 				init_port( port );
+
 				break;
-                        case 2:				
+			case 2:				
 				result = enter_command_mode( );
 
 				if( result == 0 )
@@ -70,12 +72,12 @@ int main( int argc, char * argv[] )
 			case 3:
 				result = exit_command_mode( );
 
-                                if( result == 0 )
-                                        printf( "\nSuccessfully exited command mode.\n" );
-                                else
-                                        printf( "\nResult = %d\n", result );
-                                
-                                break;
+				if( result == 0 )
+					printf( "\nSuccessfully exited command mode.\n" );
+				else
+					printf( "\nResult = %d\n", result );
+
+				break;
 			case 4:
 				result = get_ip( buffer );
 				
@@ -83,14 +85,15 @@ int main( int argc, char * argv[] )
 					printf( "\nIP Address: %s\n", buffer);
 				else
 					printf( "\nResult = %d\n", result );
-				break;
-                        default:
-                                printf( "\nInvalid Choice. Please try again.\n" );
-				break;
-                }//END SWITCH
 
-		//printf( "\nChoice = %d\n", choice ); //DEBUG
+				break;
+			default:
+				printf( "\nInvalid Choice. Please try again.\n" );
+
+				break;
+		}//END SWITCH
 
 		display( );
+
 	}// END WHILE
 }//-----End-----int main( int argc, char * argv[] )-----------------------
