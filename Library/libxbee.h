@@ -67,10 +67,16 @@ fd_set readfs;						//A set of files descriptors for the select system call to c
  *						termios.h
  *						sys/time.h
  *
- * @param char * port: The complete name of the port to be opened(i.e. /dev/ttyUSB0)
+ * @param char * port: The complete name of the port to be opened
  *
- * @return:		   0 - success
- *			Not Zero - Error
+ * @return :		0 - success
+ *					1 - Incoming port variable is too long
+ *					2 - Failed to open serial port
+ *					3 - Failed to enable asynchronous communication
+ *					4 - Failed to clear termios struct
+ *					5 - Error while flushing read data
+ *					6 - Failed to activate the port 
+ *			 Not Zero - Error
  */
 int init_port( char * );
 
@@ -80,8 +86,9 @@ int init_port( char * );
  *
  * @param char * buffer: The data to write to the port
  *
- * @return:		   0 - success
- *			Not Zero - Error
+ * @return :		0 - success
+ *					1 - Error occured when writing to the port
+ *			 Not Zero - Error
  */
 int write_port( char * );
 
@@ -92,19 +99,25 @@ int write_port( char * );
  *
  * @param char * buffer: Data read from the port will be stored here
  *
- * @return:		   0 - success
- *			Not Zero - Error
+ * @return :		0 - Success
+ *					1 - Successfully read all data from port
+ *			 Not Zero - All data has been received
  */
 int read_port( char * );
 
-/* @breif 
+/* @breif Use the system call select to check each port for readiness to be read
  *
- * Header files needed: 
+ * Header files needed: sys/time.h
+ *						sys/types.h
+ *						unistd.h
+ *							or
+ *						sys/select.h
  *
- * @param 
+ * @param count: The number of file descriptors provided
+ * @param fds: An array of file descriptors to be monitored
  *
- * @return:		   0 - success
- *			Not Zero - Error
+ * @return :		0 - No file descriptor is ready
+ *			 Not Zero - The file descriptor that is ready for communication
  */
 int check_descriptors( int, int [] );
 
@@ -112,8 +125,9 @@ int check_descriptors( int, int [] );
  *
  * @AT Command: +++
  *
- * @return:		   0 - success
- *			Not Zero - Error
+ * @return :		0 - success
+ *				   -1 - Error writing to the port
+ *			 Not Zero - Error
  */
 int enter_command_mode( void );
 
@@ -121,8 +135,9 @@ int enter_command_mode( void );
  *
  * @AT Command: ATCN
  *
- * @return:		   0 - success
- *			Not Zero - Error
+ * @return :		0 - Success
+ *				   -1 - Error writing to the port
+ * 			 Not Zero - Error
  */
 int exit_command_mode( void );
 
@@ -132,8 +147,10 @@ int exit_command_mode( void );
  *
  * @param char * buffer: IP address will be stored here
  *
- * @return:        0 - success
- * 			Not Zero - Error
+ * @return :		0 - Success
+ *				   -1 - Error when entering command mode
+ *				   -2 - Error writing to the port
+ * 			 Not Zero - Error
  */
 int get_ip( char * );
 //---------------End Function Prototypes-------------------------------------------

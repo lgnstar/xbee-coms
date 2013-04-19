@@ -42,6 +42,12 @@
  * @param char * port: The complete name of the port to be opened
  *
  * @return :		0 - success
+ *					1 - Incoming port variable is too long
+ *					2 - Failed to open serial port
+ *					3 - Failed to enable asynchronous communication
+ *					4 - Failed to clear termios struct
+ *					5 - Error while flushing read data
+ *					6 - Failed to activate the port 
  *			 Not Zero - Error
  */
 int init_port(char * port)
@@ -56,7 +62,7 @@ int init_port(char * port)
 				MAX_BUFFER_SIZE );
 
 		return 1;
-	}//END----- length > 255 ---------------------------------------------
+	}//End ----- if( length > 255 ) ---------------------------------
 
 	if( length == 0 )
 	{
@@ -67,7 +73,7 @@ int init_port(char * port)
 	{
 		//Copy the the provided port name into the global variable port_name to be used in other functions
         strncpy( port_name, port, MAX_BUFFER_SIZE );
-	}
+	}//End ----- if( length == 0 ) ----------------------------------
 
 	// SIGIO is used for interrupt-driven input
 	// We are ignoring SIGIO because we are using the select function instead
@@ -85,7 +91,7 @@ int init_port(char * port)
 				errno );
 
 		return 2;
-	}
+	}//End ----- if( port_descriptor <= 0 ) -------------------------
 
 	//Set the serial port(or the open file descriptor port_descriptor) up for asynchronous input/output.
 	ret_value = fcntl( port_descriptor,
@@ -99,7 +105,7 @@ int init_port(char * port)
 				errno );
 
 		return 3;
-	}
+	}//End ----- if( ret_value != 0 ) -------------------------------
 
 	//Set timeout values
 	timeout.tv_sec = TIMEOUT_SEC;	//seconds
@@ -116,7 +122,7 @@ int init_port(char * port)
 				errno );
 		
 		return 4;
-	}
+	}//End ----- if( memset < 1 ) -------------------------------
 
 	//Set Control modes
 	newtio.c_cflag = ( BAUDRATE |	//Set the Baud rate
@@ -151,7 +157,7 @@ int init_port(char * port)
 				port_name,
 				errno );
 		return 5;
-	}
+	}//End ----- if( ret_value != 0 ) -------------------------------
 
 	//Write the attributes to the descriptor
 	ret_value = tcsetattr( port_descriptor,	
@@ -165,7 +171,7 @@ int init_port(char * port)
 				errno );
 
 		return 6;
-	}
+	}//End ----- if( ret_value != 0 ) -------------------------------
 
 	printf( "\nSuccessfully established communication with device at port[%s].\n",
 			port_name );
@@ -180,8 +186,9 @@ int init_port(char * port)
  *
  * @param char * buffer: The data to write to the port
  *
- * @return:		   0 - success
- *			Not Zero - Error
+ * @return :		0 - success
+ *					1 - Error occured when writing to the port
+ *			 Not Zero - Error
  */
 int write_port( char * buffer )
 {
@@ -199,11 +206,11 @@ int write_port( char * buffer )
 				write_count );
 
 		result = 1;
-	}
+	}//End -----  while( write_count < 0 ) --------------------------
 
 	return result;
 
-}//----- End ----- write_port(char * buffer)-----------------------------------
+}//----- End ----- write_port(char * buffer)------------------------------
 
 
 /* @breif Reads one byte from the initialized port and stores the byte
@@ -213,8 +220,9 @@ int write_port( char * buffer )
  *
  * @param char * buffer: Data read from the port will be stored here
  *
- * @return:		   0 - success
- *			Not Zero - All data has been received
+ * @return :		0 - Success
+ *					1 - Successfully read all data from port
+ *			 Not Zero - All data has been received
  */
 int read_port( char * buffer )
 {
@@ -231,15 +239,17 @@ int read_port( char * buffer )
 			result = 1;
 		}
 		else
+		{
 			buffer[index] = rx_char;
+		}//End ----- if( rx_char == '\r' ) --------------------------
 
-	}//END testing for serial port input--------------------------
+	}//END ----- read ( ) -------------------------------------------
 
 	return result;
 
 }//----- End ----- read_port(char * buffer)-------------------------------
 
-/* @breif 
+/* @breif Use the system call select to check each port for readiness to be read
  *
  * Header files needed: sys/time.h
  *						sys/types.h
@@ -250,8 +260,8 @@ int read_port( char * buffer )
  * @param count: The number of file descriptors provided
  * @param fds: An array of file descriptors to be monitored
  *
- * @return:		   0 - No file descriptor is ready
- *			Not Zero - The file descriptor that is ready for communication
+ * @return :		0 - No file descriptor is ready
+ *			 Not Zero - The file descriptor that is ready for communication
  */
 int check_descriptors( int count, int fds[] )
 {
@@ -263,7 +273,7 @@ int check_descriptors( int count, int fds[] )
 	{
 		count--;
 		FD_SET( fds[count], &readfs ); //Add each provided file descriptor to the set
-	}//END----- while -----
+	}//END----- while( count > -1 ) ---------------------------------
 
 	result = select( maxfd, &readfs, NULL, NULL, &timeout );
 
@@ -274,8 +284,9 @@ int check_descriptors( int count, int fds[] )
  *
  * @AT Command: +++
  *
- * @return:		   0 - success
- *			Not Zero - Error
+ * @return :		0 - success
+ *				   -1 - Error writing to the port
+ *			 Not Zero - Error
  */
 int enter_command_mode( void )
 {
@@ -286,15 +297,20 @@ int enter_command_mode( void )
 	//We only want to watch the descriptor associated with the hardware
 	fds[0] = port_descriptor;	
 
-	write_port( "+++\0" );
-	
-	while( result == 0)
+	if( write_port( "+++\0" ) == 0 )
 	{
-		if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
+		while( result == 0)
 		{
-			result = read_port( rx );
-		}
+			if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
+			{
+				result = read_port( rx );
+			}//End ----- check_descriptor > 0 -----------------------
+		}//End ----- while( result == 0 ) ---------------------------
 	}
+	else
+	{
+		return -1;
+	}//End ----- write_port == 0 ------------------------------------
 
 	return ( strncmp( rx, "OK", 2 ) == 0 );
 }//----- End ----- enter_command_mode( void )-----------------------------
@@ -303,8 +319,9 @@ int enter_command_mode( void )
  *
  * @AT Command: ATCN
  *
- * @return:        0 - success
- * 			Not Zero - Error
+ * @return :		0 - Success
+ *				   -1 - Error writing to the port
+ * 			 Not Zero - Error
  */
 int exit_command_mode( void )
 {
@@ -315,15 +332,20 @@ int exit_command_mode( void )
 	//We only want to watch the descriptor associated with the hardware
 	fds[0] = port_descriptor;
 
-	write_port( "atcn\r" );
-
-	while( result == 0 )
+	if( write_port( "atcn\r" ) == 0 )
 	{
-        if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
+		while( result == 0 )
 		{
-			result = read_port( rx );
-		}
+        	if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
+			{
+				result = read_port( rx );
+			}//End ----- check_descriptor > 0 -----------------------
+		}//End ----- while( result == 0 ) ---------------------------
 	}
+	else
+	{
+		return -1;
+	}//End ----- write_port == 0 ------------------------------------
 
 	return ( strncmp( rx, "OK", 2 ) == 0 );
 }//----- End ----- exit_command_mode( void )------------------------------
@@ -334,8 +356,10 @@ int exit_command_mode( void )
  *
  * @param char * buffer: IP address will be stored here
  *
- * @return:		   0 - success
- * 			Not Zero - Error
+ * @return :		0 - Success
+ *				   -1 - Error when entering command mode
+ *				   -2 - Error writing to the port
+ * 			 Not Zero - Error
  */
 int get_ip( char * buffer )
 {
@@ -355,12 +379,12 @@ int get_ip( char * buffer )
 				if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
 				{
 					result = read_port( buffer );
-				}
+				}//End ----- check_descriptor > 0 -----------------------
 			}//END ----- while( result == 0 ) -----------------------
 		}
 		else
 		{
-			return 2;
+			return -2;
 		}//END ----- write_port == 0 --------------------------------
 
 		exit_command_mode( );
@@ -368,7 +392,7 @@ int get_ip( char * buffer )
 	}
 	else
 	{
-		return 1;
+		return -1;
 	}//END ----- enter_command_mode == 0----------------------------------
 
 	return 0;
