@@ -1,12 +1,12 @@
-app: main.o libxbee.o
-	gcc -o app main.o libxbee.o
+app: main_test.o libxbee.o
+	gcc -o app main_test.o libxbee.o
 
-main.o: main.c libxbee.h
-	gcc -c main.c libxbee.h
+main_test.o: main_test.c libxbee.h
+	gcc -c main_test.c libxbee.h
 
 libxbee.o: libxbee.c libxbee.h
 	gcc -c libxbee.c libxbee.h
 
 clean:
-	rm main.o
+	rm main_test.o
 	rm libxbee.o
