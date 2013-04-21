@@ -28,7 +28,7 @@ void display( void )
 			"   3. Exit Command Mode\n"\
 			"   4. Get IP Address\n"\
 			"   0. Exit program\n"\
-			"\nSelect a number:" );
+			"\nSelect a number: " );
 }
 
 int main( int argc, char * argv[] )
@@ -36,7 +36,9 @@ int main( int argc, char * argv[] )
 	int choice = -1;
 	int result;
 	char * port;
-	char buffer[MAX_BUFFER_SIZE];
+	char * buffer;
+
+	buffer = calloc( MAX_BUFFER_SIZE, sizeof(char) );
 
 	printf( "\nTest program for libxbee library version 1.0\n" );
 
@@ -54,10 +56,13 @@ int main( int argc, char * argv[] )
 
 				break;
 			case 1:
-				printf( "\nEnter port name:" );
+				printf( "\nEnter port name: " );
 				scanf( "%s", port );
 
-				init_port( port );
+				result = init_port( port );
+
+				if( result > 0 )
+					printf( "\nFailed to due Error: %d\n", result );
 
 				break;
 			case 2:				
@@ -82,7 +87,10 @@ int main( int argc, char * argv[] )
 				result = get_ip( buffer );
 				
 				if( result == 0 )
+				{
 					printf( "\nIP Address: %s\n", buffer);
+					buffer[0] = '\0'; //Clear the buffer
+				}
 				else
 					printf( "\nResult = %d\n", result );
 

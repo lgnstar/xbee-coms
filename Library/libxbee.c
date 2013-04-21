@@ -27,6 +27,7 @@
 #include <sys/select.h>
 #include "libxbee.h"
 
+
 /* @breif Initializes and opens the provided serial port
  *
  * Header files needed: signal.h
@@ -41,7 +42,7 @@
  *
  * @param char * port: The complete name of the port to be opened
  *
- * @return :		0 - success
+ * @return :		0 - Success
  *					1 - Incoming port variable is too long
  *					2 - Failed to open serial port
  *					3 - Failed to enable asynchronous communication
@@ -249,6 +250,7 @@ int read_port( char * buffer )
 
 }//----- End ----- read_port(char * buffer)-------------------------------
 
+
 /* @breif Use the system call select to check each port for readiness to be read
  *
  * Header files needed: sys/time.h
@@ -266,19 +268,22 @@ int read_port( char * buffer )
 int check_descriptors( int count, int fds[] )
 {
 	int result; 
+	
+	count--; //This drecrement is start the index at the correct value
 
 	FD_ZERO( &readfs );		//Initialize the readfs set to 0
 
 	while( count > -1)
 	{
-		count--;
 		FD_SET( fds[count], &readfs ); //Add each provided file descriptor to the set
+		count--;
 	}//END----- while( count > -1 ) ---------------------------------
 
 	result = select( maxfd, &readfs, NULL, NULL, &timeout );
 
 	return result;
 }//----- End ----- check_descriptors( int fds[] )-------------------------
+
 
 /* @breif Communicates with the xbee and puts it into command mode
  *
@@ -315,6 +320,7 @@ int enter_command_mode( void )
 	return ( strncmp( rx, "OK", 2 ) == 0 );
 }//----- End ----- enter_command_mode( void )-----------------------------
 
+
 /* @breif Communicates with the xbee and takes it out of command mode
  *
  * @AT Command: ATCN
@@ -350,6 +356,7 @@ int exit_command_mode( void )
 	return ( strncmp( rx, "OK", 2 ) == 0 );
 }//----- End ----- exit_command_mode( void )------------------------------
 
+
 /* @breif Runs the an AT command that will return the xbees IP address
  *
  * @AT Command: ATMY
@@ -372,7 +379,7 @@ int get_ip( char * buffer )
 		//We only want to watch the descriptor associated with the hardware
 		fds[0] = port_descriptor;
 
-		if( write_port( "atcn\r\0" ) == 0 )
+		if( write_port( "atmy\r" ) == 0 )
 		{
        		while( result == 0 )
        		{
