@@ -201,10 +201,10 @@ int write_port( char * buffer )
 
 	if( write_count < 0 )
 	{
-		printf( "Writing [%s] to serial port[%s] failed(%d)!\n",
+		printf( "Writing [%s] to serial port[%s] failed with errno(%d)!\n",
 				buffer,
 				port_name,
-				write_count );
+				errno );
 
 		result = 1;
 	}//End -----  while( write_count < 0 ) --------------------------
@@ -214,39 +214,43 @@ int write_port( char * buffer )
 }//----- End ----- write_port(char * buffer)------------------------------
 
 
-/* @breif Reads one byte from the initialized port and stores the byte
- *		  at the end of the buffer provided
+/* @breif Reads the initialized port one char at a time
  *
  * Header files needed: unistd.h
  *
- * @param char * buffer: Data read from the port will be stored here
+ * @param char buffer: Data read from the port will be stored here
  *
  * @return :		0 - Success
- *					1 - Successfully read all data from port
- *			 Not Zero - All data has been received
+ *			 Not Zero - Error
+ *
  */
-int read_port( char * buffer )
+int read_port( int fds[], char * buffer )
 {
 	char rx_char;
-	int index = strlen( buffer );
-	int result = 0;
+	int index = 0;
 
-	if( read( port_descriptor, &rx_char, 1 ) )
+	while(rx_char != '\r' )
 	{
-		//XBee responses are terminated by carriage return=<cr>='\r'=13=0x0d
-		if( rx_char == '\r' )
+		if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
 		{
-			buffer[index] = '\0';	//Add the null char to finish the string
-			result = 1;
-		}
-		else
-		{
-			buffer[index] = rx_char;
-		}//End ----- if( rx_char == '\r' ) --------------------------
+			if( read( port_descriptor, &rx_char, 1 ) )
+			{
+				//XBee responses are terminated by carriage return=<cr>='\r'=13=0x0d
+				if( rx_char == '\r' )
+				{
+					buffer[index] = '\0';	//Add the null char to finish the string
+				}
+				else
+				{
+					buffer[index] = rx_char;
+				}//End ----- if( rx_char == '\r' ) ------------------
 
-	}//END ----- read ( ) -------------------------------------------
+				index++;
+			}//End ----- read ( ) -----------------------------------
+		}//End ----- check_descriptors ( ) --------------------------
+	}//End ----- while( result == 0 ) -------------------------------
 
-	return result;
+	return 0;
 
 }//----- End ----- read_port(char * buffer)-------------------------------
 
@@ -298,26 +302,28 @@ int enter_command_mode( void )
 	int fds[1];
 	int result = 0;
 	char rx[MAX_BUFFER_SIZE];
-		
+	
 	//We only want to watch the descriptor associated with the hardware
 	fds[0] = port_descriptor;	
 
 	if( write_port( "+++\0" ) == 0 )
 	{
-		while( result == 0)
+		result = read_port( fds, rx );
+
+		if( result != 0 )
 		{
-			if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
-			{
-				result = read_port( rx );
-			}//End ----- check_descriptor > 0 -----------------------
-		}//End ----- while( result == 0 ) ---------------------------
+			printf( "\nFailed to read port\n" );
+			return -2;
+		}
 	}
 	else
 	{
 		return -1;
 	}//End ----- write_port == 0 ------------------------------------
 
-	return ( strncmp( rx, "OK", 2 ) == 0 );
+	result = strncmp( rx, "OK", 2 );
+
+	return result;
 }//----- End ----- enter_command_mode( void )-----------------------------
 
 
@@ -340,13 +346,8 @@ int exit_command_mode( void )
 
 	if( write_port( "atcn\r" ) == 0 )
 	{
-		while( result == 0 )
-		{
-        	if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
-			{
-				result = read_port( rx );
-			}//End ----- check_descriptor > 0 -----------------------
-		}//End ----- while( result == 0 ) ---------------------------
+		if ( read_port( fds, rx ) != 0 )
+			return -2;
 	}
 	else
 	{
@@ -354,6 +355,8 @@ int exit_command_mode( void )
 	}//End ----- write_port == 0 ------------------------------------
 
 	return ( strncmp( rx, "OK", 2 ) == 0 );
+
+	return result;
 }//----- End ----- exit_command_mode( void )------------------------------
 
 
@@ -371,23 +374,19 @@ int exit_command_mode( void )
 int get_ip( char * buffer )
 {
 	int fds[1];
-	int result = 0;
-
-	if( enter_command_mode( ) == 0 )
+	int result;
+	
+	result = enter_command_mode( );
+	
+	if( result == 0 )
 	{
-
 		//We only want to watch the descriptor associated with the hardware
 		fds[0] = port_descriptor;
 
 		if( write_port( "atmy\r" ) == 0 )
 		{
-       		while( result == 0 )
-       		{
-				if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
-				{
-					result = read_port( buffer );
-				}//End ----- check_descriptor > 0 -----------------------
-			}//END ----- while( result == 0 ) -----------------------
+			if( read_port( fds, buffer ) != 0 )
+				return -3;
 		}
 		else
 		{
@@ -395,13 +394,12 @@ int get_ip( char * buffer )
 		}//END ----- write_port == 0 --------------------------------
 
 		exit_command_mode( );
-
 	}
 	else
 	{
 		return -1;
 	}//END ----- enter_command_mode == 0----------------------------------
 
-	return 0;
+	return result;
 }//----- End ----- get_ip( char * )---------------------------------------
 

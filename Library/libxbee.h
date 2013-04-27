@@ -97,13 +97,13 @@ int write_port( char * );
  *
  * Header files needed: unistd.h
  *
- * @param char * buffer: Data read from the port will be stored here
+ * @param char rx : Character read from the port will be stored here
  *
  * @return :		0 - Success
  *					1 - Successfully read all data from port
  *			 Not Zero - All data has been received
  */
-int read_port( char * );
+int read_port( int [], char * );
 
 /* @breif Use the system call select to check each port for readiness to be read
  *
@@ -153,5 +153,6 @@ int exit_command_mode( void );
  * 			 Not Zero - Error
  */
 int get_ip( char * );
+//int send_at( char *, char * );
 //---------------End Function Prototypes-------------------------------------------
 #endif //Include Gaurd End
