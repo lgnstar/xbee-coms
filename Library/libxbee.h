@@ -103,7 +103,7 @@ int write_port( char * );
  *					1 - Successfully read all data from port
  *			 Not Zero - All data has been received
  */
-int read_port( int [], char * );
+int read_port( int , char * );
 
 /* @breif Use the system call select to check each port for readiness to be read
  *
@@ -113,13 +113,12 @@ int read_port( int [], char * );
  *							or
  *						sys/select.h
  *
- * @param count: The number of file descriptors provided
- * @param fds: An array of file descriptors to be monitored
+ * @param fd: The file descriptor to be monitored
  *
  * @return :		0 - No file descriptor is ready
  *			 Not Zero - The file descriptor that is ready for communication
  */
-int check_descriptors( int, int [] );
+int check_descriptors( int );
 
 /* @breif Communicates with the xbee and puts it into command mode
  *

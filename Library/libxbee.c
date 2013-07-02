@@ -224,14 +224,14 @@ int write_port( char * buffer )
  *			 Not Zero - Error
  *
  */
-int read_port( int fds[], char * buffer )
+int read_port( int fd, char * buffer )
 {
 	char rx_char;
 	int index = 0;
 
 	while(rx_char != '\r' )
 	{
-		if( check_descriptors( 1, fds ) > 0 ) //If true, the port is ready
+		if( check_descriptors( fd ) > 0 ) //If true, the port is ready
 		{
 			if( read( port_descriptor, &rx_char, 1 ) )
 			{
@@ -269,19 +269,13 @@ int read_port( int fds[], char * buffer )
  * @return :		0 - No file descriptor is ready
  *			 Not Zero - The file descriptor that is ready for communication
  */
-int check_descriptors( int count, int fds[] )
+int check_descriptors( int fd )
 {
 	int result; 
 	
-	count--; //This drecrement is start the index at the correct value
-
 	FD_ZERO( &readfs );		//Initialize the readfs set to 0
 
-	while( count > -1)
-	{
-		FD_SET( fds[count], &readfs ); //Add each provided file descriptor to the set
-		count--;
-	}//END----- while( count > -1 ) ---------------------------------
+	FD_SET( fd, &readfs ); //Add each provided file descriptor to the set
 
 	result = select( maxfd, &readfs, NULL, NULL, &timeout );
 
@@ -299,16 +293,12 @@ int check_descriptors( int count, int fds[] )
  */
 int enter_command_mode( void )
 {
-	int fds[1];
 	int result = 0;
 	char rx[MAX_BUFFER_SIZE];
 	
-	//We only want to watch the descriptor associated with the hardware
-	fds[0] = port_descriptor;	
-
 	if( write_port( "+++\0" ) == 0 )
 	{
-		result = read_port( fds, rx );
+		result = read_port( port_descriptor, rx );
 
 		if( result != 0 )
 		{
@@ -337,16 +327,12 @@ int enter_command_mode( void )
  */
 int exit_command_mode( void )
 {
-	int fds[1];
 	int result = 0;
 	char rx[MAX_BUFFER_SIZE];
 
-	//We only want to watch the descriptor associated with the hardware
-	fds[0] = port_descriptor;
-
 	if( write_port( "atcn\r" ) == 0 )
 	{
-		if ( read_port( fds, rx ) != 0 )
+		if ( read_port( port_descriptor, rx ) != 0 )
 			return -2;
 	}
 	else
@@ -373,19 +359,16 @@ int exit_command_mode( void )
  */
 int get_ip( char * buffer )
 {
-	int fds[1];
 	int result;
 	
 	result = enter_command_mode( );
 	
 	if( result == 0 )
 	{
-		//We only want to watch the descriptor associated with the hardware
-		fds[0] = port_descriptor;
 
 		if( write_port( "atmy\r" ) == 0 )
 		{
-			if( read_port( fds, buffer ) != 0 )
+			if( read_port( port_descriptor, buffer ) != 0 )
 				return -3;
 		}
 		else
